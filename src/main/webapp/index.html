@@ -1,0 +1,313 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+	<head>
+		<title>My JSP 'index.jsp' starting page</title>
+		<meta http-equiv="pragma" content="no-cache">
+		<meta http-equiv="cache-control" content="no-cache">
+		<meta http-equiv="expires" content="0">
+		<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+		<meta http-equiv="description" content="This is my page">
+		<!--
+		<link rel="stylesheet" type="text/css" href="styles.css">
+		-->
+		<style type="text/css">
+			A.clsMenuBarItem:visited {
+				color: #3E5C92;
+				font-size: 9pt;
+				font-weight: bold;
+				text-decoration: none;
+			}
+			A.clsMenuBarItem:link {
+				color: #3E5C92;
+				font-size: 9pt;
+				font-weight: bold;
+				text-decoration: none;
+			}
+			BODY A:visited {
+				color: #22229C;
+			}
+			BODY A:link {
+				color: #22229C;
+			}
+			A.clsMenuBarItem {
+				color: #3E5C92;
+				font-size: 9pt;
+				font-weight: bold;
+				text-decoration: none;
+			}
+			A {
+				text-decoration: none;
+			}
+			a {
+				color: #08c;
+				text-decoration: none;
+			}
+		</style>
+		<script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+		<script type="text/javascript">
+			var socket;
+			function openChannel(userName) {
+				if(socket == null){
+					console.log("Opening channel.");
+					socket = new WebSocket("ws://10.188.192.169:8080/WebSocketForJavaEE7/websocket/" + userName);
+					socket.onopen = onChannelOpened;
+					socket.onmessage = onChannelMessage;
+					socket.onclose = onChannelClosed;
+				}
+			}
+			
+			
+			function onChannelOpened(evt){
+				console.log("onChannelOpened: " + evt.data);
+				console.log("socket: " + socket);
+				getOnlines();
+				$("#userForm").hide();
+				debug("登录成功");
+			}
+			function onChannelMessage(evt){
+				console.log("onChannelMessage: " + evt.data);
+				debug(evt.data);
+				parseMessage(evt.data);
+				//alert("新消息: " + evt.data);
+			}
+			function onChannelClosed(){
+				console.log("onChannelClosed." );
+				socket = null;
+				debug("连接断开！");
+			}
+			/**
+			 * 向服务器发送消息
+			*/
+			function sendMessage(message){
+				if(socket != null && message != null){
+					socket.send(message);
+				} else {
+					debug("连接已断开！");
+				}
+			}
+			
+			/**
+			 * 解析服务器的消息内容
+			*/
+			function parseMessage(message){
+				var jsonObject = jQuery.parseJSON(message);
+				var code = jsonObject.code;
+				if("Onlines" == code){
+					onlines(jsonObject);
+				} else if("NewMessage" == code){
+					newMessage(jsonObject);
+				} else if("Online" == code){
+					online(jsonObject);
+				} else if("Offline" == code){
+					offline(jsonObject);
+				}
+			}
+			
+			function debug(message){
+				$("#debugList").prepend("&nbsp;&nbsp;&nbsp;&nbsp;" + message + "<br>");
+			}
+			
+			$(function(){
+				$("#userForm").submit(function(){
+					var user = $("input[name=user]").val();
+					console.log("user: " + user);
+					openChannel(user);
+					return false;
+				});
+				
+				$("#sendMessageForm").submit(function(){
+					var name = $("#receiver").html();
+					var content = $("input[name=content]").val();
+					var command = "message?actionType=sendMessage&userName=" + name + "&messageContent=" + content;
+					sendMessage(command);
+					return false;
+				});
+				
+				$("#closeMessage").click(function(){
+					$("#sendMessageDiv").hide();
+				});
+				
+				var isMousedown = false;
+				var mouseDownX;
+				var mouseDownY;
+				var sendMessageDivX;
+				var sendMessageDivY;
+				
+				$("#titleDiv").mousedown(function(e){
+					isMousedown = true;
+					mouseDownX = e.pageX;
+					mouseDownY = e.pageY;
+					var offset = $("#sendMessageDiv").offset();
+					sendMessageDivX = offset.left;
+					sendMessageDivY = offset.top;
+				});
+				
+				$("#titleDiv").mouseup(function(e){
+					isMousedown = false;
+				});
+				
+				$("#titleDiv").mousemove(function(e){
+					//debug(isMousedown);
+					if(isMousedown){
+						var diffX = e.pageX - mouseDownX;
+						var diffY = e.pageY - mouseDownY;
+						var targetX = sendMessageDivX + diffX;
+						var targetY = sendMessageDivY + diffY;
+						//debug("sendMessageDivX: " + sendMessageDivX);
+						//debug("sendMessageDivY: " + sendMessageDivY);
+						$("#sendMessageDiv").css("left", targetX);
+						$("#sendMessageDiv").css("top", targetY);
+					}
+				});
+				$("#sendMessageDiv").mouseout(function(e){
+					isMousedown = false;
+				});
+				
+			});
+			
+			function getOnlines(){
+				if(userDiv == null){
+					userDiv = $(".user");
+				}
+				var command = "user?actionType=getOnlines";
+				sendMessage(command);
+				/**
+				$.post("message?actionType=getOnlines", function(callBack){
+					var onlines = jQuery.parseJSON(callBack);
+					$("#onlineDiv").show();
+					$("#onlines").html("");
+					$.each(onlines, function(i, user){
+						var newUserDiv = userDiv.clone();
+						$(newUserDiv).children(".name").html(user.userName);
+						$("#onlines").append(newUserDiv);
+					});
+				});
+				*/
+			}
+			
+			function newMessage(jsonObject){ // {"code":"NewMessage","messageContent":"sss","userName":"kkk"}
+				var messageLine = "userName: " + jsonObject.userName + ", messageContent: " + jsonObject.messageContent + "<br>";
+				$("#messageList").prepend(messageLine);
+			}
+			
+			function online(jsonObject){ // {"code":"NewMessage","messageContent":"sss","userName":"kkk"}
+				var newUserDiv = userDiv.clone();
+				$(newUserDiv).children(".name").html(jsonObject.userName);
+				$("#onlines").prepend(newUserDiv);
+			}
+			
+			function offline(jsonObject){ // {"code":"NewMessage","messageContent":"sss","userName":"kkk"}
+				var userName = jsonObject.userName;
+				$("#onlines").children().each(function(i, user){
+					debug($(user).children(".name").html());
+					if($(user).children(".name").html() == userName){
+						$(user).remove();
+					}
+				});
+			}
+			function checkLeave(){
+				debug("reaload");
+				socket.close();
+			}
+			
+			window.onbeforeunload = function(){// Chrome
+				checkLeave();
+				//return "确认离开?";
+			}
+			
+			$(window).unload(function(){ //IE
+				checkLeave();
+			});
+			
+			var userDiv;
+			function onlines(jsonObject){
+				$("#onlineDiv").show();
+				$("#onlines").html("");
+				$.each(jsonObject.users, function(i, user){
+					var newUserDiv = userDiv.clone();
+					$(newUserDiv).children(".name").html(user.userName);
+					$("#onlines").append(newUserDiv);
+				});
+			}
+			
+			$(".chat").live("click", function(){
+				var name = $(this).parent().children($(".name")).html();
+				$("#sendMessageDiv").show();
+				$("#receiver").html(name);
+			});
+		</script>
+	</head>
+
+	<body>
+		<form action="websocket" method="post" id="userForm">
+			<table>
+				<tr>
+					<td>
+						登录名：
+					</td>
+					<td>
+						<input type="text" name="user" />
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<input type="submit" value="连接服务" />
+					</td>
+				</tr>
+			</table>
+		</form>
+		<div style="display: none;" id="onlineDiv">
+			<div>当前在线：
+				<div id="onlines" style="width: 300px;">
+					<div class="user" style="width: 300px; height:54; ">
+						<div class="name" style="width: 222px; height:54; float: left;"></div>
+						<div class="chat" style="width: 78px; height:54; float: left;"><a href="javascript:;">发送消息</a></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="messageListDiv">
+			消息列表：
+			<div id="messageList">
+				
+			</div>
+		</div>
+		<div id="messageDebug" style="position: absolute; width: 600; height: 800; top: 0; left:400;">
+			debug:
+			<div id="debugList">
+				
+			</div>
+		</div>
+		<div id="sendMessageDiv" style="position: absolute; background-color: pink; width: 600; height: 400; display: none; top: 200; left:160;" focuseable="false">
+			<div style="height: 20; top: 5; right:5;" id="titleDiv">
+				<div style="position: absolute; width: 10; height: 10; top: 5; right:10;">
+					<span id="closeMessage"><a href="javascript:;">x</a></span>
+				</div>
+				<div style="position: absolute; text-align: center; background-color:argb(255,255,255,255); height:20; top:5; left:250;">
+					<span style="text-align: center;">发送消息</span>
+				</div>
+			</div>
+			<div>
+				<form action="message" method="post" id="sendMessageForm">
+					<table>
+						<tr>
+							<td>
+								接收人：<span id="receiver"></span>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								内容:<input type="text" name="content">
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<input type="submit" value="发送">
+							</td>
+						</tr>
+					</table>			
+				</form>
+			</div>
+		</div>
+	</body>
+</html>
