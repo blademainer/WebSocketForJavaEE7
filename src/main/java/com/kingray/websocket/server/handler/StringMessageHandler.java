@@ -6,10 +6,9 @@ package com.kingray.websocket.server.handler;
 import java.io.IOException;
 import java.util.List;
 
-import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import com.kingray.websocket.server.MyServerEndpoint;
+import com.kingray.websocket.server.session.SessionManager;
 import com.xiongyingqi.util.EntityHelper;
 
 /**
@@ -32,7 +31,7 @@ public class StringMessageHandler extends AbstractHandler<String> {//implements 
 	@Override
 	public void onMessage(String message) {
 		EntityHelper.print(message);
-		List<Session> clients = MyServerEndpoint.getClients();
+		List<Session> clients = SessionManager.getClients();
 		for (Session session : clients) {
 			try {
 				session.getBasicRemote().sendText(message);

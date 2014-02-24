@@ -17,6 +17,11 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 
+/**
+ * 模拟服务端
+ * @author xiongyingqi <a href="http://xiongyingqi.com">xiongyingqi.com</a>
+ * @version 2014年2月20日 下午4:42:03
+ */
 public class UploadServerSimulateWebSocket {
 	private int port = 8080;
 	private ServerSocket serverSocket;
