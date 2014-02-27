@@ -31,46 +31,46 @@ public class PackageUtil {
 		System.out.println(getclass(PackageUtil.class.getPackage()));
 	}
 
-	public static List<String> getClassInPackage(String pkgName) {
-		List<String> ret = new ArrayList<String>();
-		String rPath = pkgName.replace('.', '/') + "/";
-		try {
-			for (File classPath : CLASS_PATH_ARRAY) {
-				if (!classPath.exists())
-					continue;
-				if (classPath.isDirectory()) {
-					File dir = new File(classPath, rPath);
-					if (!dir.exists())
-						continue;
-					for (File file : dir.listFiles()) {
-						if (file.isFile()) {
-							String clsName = file.getName();
-							clsName = pkgName + "." + clsName.substring(0, clsName.length() - 6);
-							ret.add(clsName);
-							// System.out.println("clsName ======== " +
-							// clsName);
-						}
-					}
-				} else {
-					FileInputStream fis = new FileInputStream(classPath);
-					JarInputStream jis = new JarInputStream(fis, false);
-					JarEntry e = null;
-					while ((e = jis.getNextJarEntry()) != null) {
-						String eName = e.getName();
-						if (eName.startsWith(rPath) && !eName.endsWith("/")) {
-							ret.add(eName.replace('/', '.').substring(0, eName.length() - 6));
-						}
-						jis.closeEntry();
-					}
-					jis.close();
-				}
-			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-
-		return ret;
-	}
+//	public static List<String> getClassInPackage(String pkgName) {
+//		List<String> ret = new ArrayList<String>();
+//		String rPath = pkgName.replace('.', '/') + "/";
+//		try {
+//			for (File classPath : CLASS_PATH_ARRAY) {
+//				if (!classPath.exists())
+//					continue;
+//				if (classPath.isDirectory()) {
+//					File dir = new File(classPath, rPath);
+//					if (!dir.exists())
+//						continue;
+//					for (File file : dir.listFiles()) {
+//						if (file.isFile()) {
+//							String clsName = file.getName();
+//							clsName = pkgName + "." + clsName.substring(0, clsName.length() - 6);
+//							ret.add(clsName);
+//							// System.out.println("clsName ======== " +
+//							// clsName);
+//						}
+//					}
+//				} else {
+//					FileInputStream fis = new FileInputStream(classPath);
+//					JarInputStream jis = new JarInputStream(fis, false);
+//					JarEntry e = null;
+//					while ((e = jis.getNextJarEntry()) != null) {
+//						String eName = e.getName();
+//						if (eName.startsWith(rPath) && !eName.endsWith("/")) {
+//							ret.add(eName.replace('/', '.').substring(0, eName.length() - 6));
+//						}
+//						jis.closeEntry();
+//					}
+//					jis.close();
+//				}
+//			}
+//		} catch (Exception e) {
+//			throw new RuntimeException(e);
+//		}
+//
+//		return ret;
+//	}
 
 	private static String[] CLASS_PATH_PROP = { "user.dir", "java.class.path", "java.ext.dirs",
 			"sun.boot.class.path" };

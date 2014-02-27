@@ -1,5 +1,11 @@
-var URL = "ws://localhost:8080/WebSocketForJavaEE7/websocket/web-client";
+var sessionId = "asfsfsf";
+var URL = "ws://localhost:8080/WebSocketForJavaEE7/websocket/" + sessionId;
+//var URL = "ws://localhost:8081";
 var websocket;
+var webSocketVo = {};
+var content = {};
+var connected = false;
+
 
 $(document).ready(function() {
 	connect();
@@ -12,11 +18,19 @@ function connect() {
 	websocket.onclose = onChannelClosed;
 
 }
-function sendMessage() {
-	websocket.send($("#message").val());
+
+function sendMessage(message){
+	console.log("sendMessage: " + message);
+	websocket.send(message);
+}
+
+function doSendMessage() {
+	//websocket.send($("#message").val());
+	doLogin();
 }
 function onOpen() {
-	updateStatus("connected")
+	connected = true;
+	updateStatus("connected");
 }
 function onChannelClosed() {
 	updateStatus("onChannelClosed.");

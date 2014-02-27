@@ -23,7 +23,7 @@ import java.security.MessageDigest;
  * @version 2014年2月20日 下午4:42:03
  */
 public class UploadServerSimulateWebSocket {
-	private int port = 8080;
+	private int port = 8081;
 	private ServerSocket serverSocket;
 
 	public UploadServerSimulateWebSocket() throws IOException {

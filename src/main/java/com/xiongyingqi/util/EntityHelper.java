@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -53,6 +54,35 @@ public class EntityHelper {
 	// a={b, c}]
 	public static final Object LOCK = new Object();
 	private static Map<Class<?>, Object> singletonMap = new HashMap<Class<?>, Object>();
+
+	/**
+	 * 获取该class所表示的父类的泛型数组 <br>
+	 * 例如如下定义中：
+	 * 
+	 * <pre>
+	 * class GenericSuperClass&lt;T&gt; {
+	 * }
+	 * 
+	 * class GenericSubClass&lt;String&gt; {
+	 * 	public void doGetSuperGenericTypes() {
+	 * 		EntityHelper.getGenericTypes(getClass());
+	 * 	}
+	 * }
+	 * </pre>
+	 * 只用GenericSubClass中的方法调用才有效果
+	 * 2014年2月25日 下午5:45:49
+	 * 
+	 * @param clazz
+	 * @return
+	 */
+	public static Type[] getGenericTypes(Class<?> clazz) {
+		Type mySuperClass = clazz.getGenericSuperclass();
+		Type[] types = ((ParameterizedType) mySuperClass).getActualTypeArguments();
+		for (int i = 0; i < types.length; i++) {
+			Type type = types[i];
+		}
+		return types;
+	}
 
 	/**
 	 * 获取Class类的所有字段名 <br>
@@ -146,10 +176,10 @@ public class EntityHelper {
 	 * @throws Exception
 	 *             异常
 	 */
-	public static final Object getSingleton(Class<?> clazz, Object... args) throws Exception {
-		Object instance = null;
+	public static final <T> T getSingleton(Class<T> clazz, Object... args) throws Exception {
+		T instance = null;
 		synchronized (LOCK) {
-			instance = singletonMap.get(clazz);
+			instance = (T) singletonMap.get(clazz);
 			if (instance == null) {
 				Constructor<?> constructor = null;
 				try {
@@ -159,11 +189,12 @@ public class EntityHelper {
 				}
 				if (constructor != null) {
 					try {
-						instance = constructor.newInstance(args);
+						instance = (T) constructor.newInstance(args);
 					} catch (IllegalArgumentException e) {
 					} catch (InstantiationException e) {
 					} catch (IllegalAccessException e) {
 					} catch (InvocationTargetException e) {
+						e.printStackTrace();
 					}
 				}
 				if (instance == null) {
@@ -171,7 +202,7 @@ public class EntityHelper {
 					for (int i = 0; i < constructors.length; i++) {
 						Constructor<?> constructorVar = constructors[i];
 						try {
-							instance = constructorVar.newInstance(args);
+							instance = (T) constructorVar.newInstance(args);
 						} catch (IllegalArgumentException e) {
 						} catch (InstantiationException e) {
 						} catch (IllegalAccessException e) {
@@ -180,7 +211,7 @@ public class EntityHelper {
 					}
 				}
 				if (instance == null) {
-					throw new NoSuchMethodException("无法初始化对象: " + clazz + " ;请检查传入的参数是否吻合");
+					throw new NoSuchMethodException("无法初始化对象: " + clazz + "; 请检查传入的参数是否吻合");
 				}
 			}
 			singletonMap.put(clazz, instance);
@@ -983,117 +1014,6 @@ public class EntityHelper {
 		return this.reflectToString();
 	}
 
-	static class A {
-		int a;
-		int b;
-		int c;
-		String d;
-		boolean e;
-
-		public A(int a, int b, int c, String d) {
-			this.a = a;
-			this.b = b;
-			this.c = c;
-			this.d = d;
-		}
-
-		/**
-		 * boolean
-		 * 
-		 * @return the e
-		 */
-		public boolean isE() {
-			return this.e;
-		}
-
-		/**
-		 * boolean
-		 * 
-		 * @param e
-		 *            the e to set
-		 */
-		public void setE(boolean e) {
-			this.e = e;
-		}
-
-		/**
-		 * int
-		 * 
-		 * @return the a
-		 */
-		public int getA() {
-			return this.a;
-		}
-
-		/**
-		 * int
-		 * 
-		 * @param a
-		 *            the a to set
-		 */
-		public void setA(int a) {
-			this.a = a;
-		}
-
-		/**
-		 * int
-		 * 
-		 * @return the b
-		 */
-		public int getB() {
-			return this.b;
-		}
-
-		/**
-		 * int
-		 * 
-		 * @param b
-		 *            the b to set
-		 */
-		public void setB(int b) {
-			this.b = b;
-		}
-
-		/**
-		 * int
-		 * 
-		 * @return the c
-		 */
-		public int getC() {
-			return this.c;
-		}
-
-		/**
-		 * int
-		 * 
-		 * @param c
-		 *            the c to set
-		 */
-		public void setC(int c) {
-			this.c = c;
-		}
-
-		/**
-		 * String
-		 * 
-		 * @return the d
-		 */
-		public String getD() {
-			return this.d;
-		}
-
-		/**
-		 * String
-		 * 
-		 * @param d
-		 *            the d to set
-		 */
-		public void setD(String d) {
-			this.d = d;
-		}
-
-	}
-
 	public static void main(String[] args) {
 		//		A a = new A();
 		//		a.setA(124);
@@ -1122,18 +1042,18 @@ public class EntityHelper {
 		//			};
 		//			thread.start();
 		//		}
-		try {
-			Method method = EntityHelper.getMethodOfBeanByField(A.class,
-					A.class.getDeclaredField("e"));
-			Method method2 = EntityHelper.setMethodOfBeanByField(A.class,
-					A.class.getDeclaredField("e"));
-			System.out.println(method);
-			System.out.println(method2);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		}
+		//		try {
+		//			Method method = EntityHelper.getMethodOfBeanByField(A.class,
+		//					A.class.getDeclaredField("e"));
+		//			Method method2 = EntityHelper.setMethodOfBeanByField(A.class,
+		//					A.class.getDeclaredField("e"));
+		//			System.out.println(method);
+		//			System.out.println(method2);
+		//		} catch (SecurityException e) {
+		//			e.printStackTrace();
+		//		} catch (NoSuchFieldException e) {
+		//			e.printStackTrace();
+		//		}
 		//		A a;
 		//		try {
 		//			a = (A) EntityHelper.getSingleton(A.class, 1, 2, 3, "ffff", 1234);
@@ -1143,6 +1063,22 @@ public class EntityHelper {
 		//		} catch (Exception e) {
 		//			e.printStackTrace();
 		//		}
+
+		System.out.println(getClassToBeanName(EntityHelper.class));
+	}
+
+	/**
+	 * 根据类名获取首字母消息的名称 <br>
+	 * 2014年2月25日 下午3:25:46
+	 * 
+	 * @param clazz
+	 * @return
+	 */
+	public static String getClassToBeanName(Class<?> clazz) {
+		String simpleName = clazz.getSimpleName();
+		String firstWord = simpleName.substring(0, 1).toLowerCase();
+		String otherWords = simpleName.substring(1);
+		return firstWord + otherWords;
 	}
 
 }

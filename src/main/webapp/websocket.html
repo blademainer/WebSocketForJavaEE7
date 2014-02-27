@@ -4,6 +4,7 @@
 <link href="http://getbootstrap.com/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
 <script src="js/websocket.js" type="text/javascript"></script>
+<script src="js/app/login.js" type="text/javascript"></script>
 </head>
 <body>
     <div class="container">
@@ -14,7 +15,7 @@
         <br/>
  
         <label style="display:inline-block">Message: </label><input type="text" id="message"  />
-        <button id="send" class="btn btn-primary" onclick="sendMessage()">Send</button>
+        <button id="send" class="btn btn-primary" onclick="doSendMessage()">Send</button>
  
         <table id="received_messages" class="table table-striped">
             <tr>

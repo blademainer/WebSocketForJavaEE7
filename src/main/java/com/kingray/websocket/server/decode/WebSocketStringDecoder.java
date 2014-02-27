@@ -54,7 +54,7 @@ public class WebSocketStringDecoder implements Decoder.Text<String>{
 	@Override
 	public boolean willDecode(String s) {
 		EntityHelper.print(s);
-		return false;
+		return true;
 	}
 
 }

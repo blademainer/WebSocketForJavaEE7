@@ -24,8 +24,17 @@ public class BytesMessageHandler extends AbstractHandler<byte[]>{
 	 * <br>2013-11-14 下午4:03:39
 	 * @see javax.websocket.MessageHandler.Partial#onMessage(java.lang.Object, boolean)
 	 */
-	@Override
+//	@Override
 	public void onMessage(byte[] partialMessage) {
+		EntityHelper.print(partialMessage);
+	}
+
+	/**
+	 * <br>2014年2月26日 下午7:51:00
+	 * @see javax.websocket.MessageHandler.Partial#onMessage(java.lang.Object, boolean)
+	 */
+//	@Override
+	public void onMessage(byte[] partialMessage, boolean last) {
 		EntityHelper.print(partialMessage);
 	}
 
